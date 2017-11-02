@@ -32,15 +32,8 @@ public class FFmpegUtils {
 
     //载入动态库
     static {
-        System.loadLibrary("avcodec-57");
-        System.loadLibrary("avdevice-57");
-        System.loadLibrary("avfilter-6");
-        System.loadLibrary("avformat-57");
-        System.loadLibrary("avutil-55");
-        System.loadLibrary("postproc-54");
-        System.loadLibrary("swresample-2");
-        System.loadLibrary("swscale-4");
-        System.loadLibrary("captureframe");   //即Android.mk文件#Program下的LOCAL_MODULE
+
+        System.loadLibrary("native-lib");
 
     }
 

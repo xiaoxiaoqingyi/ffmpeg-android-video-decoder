@@ -2,7 +2,10 @@ package com.opensource.ffmpeg_android_video_decoder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,7 +17,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private final static int REQUEST_CODE_FILE = 0x111;
 
-    private EditText editText;
+    private EditText input_editText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void init(){
         findViewById(R.id.button_file_path_input).setOnClickListener(this);
         findViewById(R.id.start).setOnClickListener(this);
-        editText = (EditText)findViewById(R.id.file_path_input);
+        input_editText = (EditText)findViewById(R.id.file_path_input);
     }
 
 
@@ -44,8 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void startDecoder(){
-        EditText editTextOutputFolder = (EditText) findViewById(R.id.folder_created);
-        String outputDir = Environment.getExternalStorageDirectory() + "/" + editTextOutputFolder.getText().toString();
+        EditText folder_created = (EditText) findViewById(R.id.folder_created);
+        String outputDir = Environment.getExternalStorageDirectory() + "/" + folder_created.getText().toString();
+
+        String filePath = input_editText.getText().toString();
     }
 
     private void chooceFile(){
@@ -66,8 +71,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE_FILE){
-            String curFileName = data.getData().getPath();
-            editText.setText(curFileName);
+            String curFileName = Utils.getPath(this, data.getData());
+            input_editText.setText(curFileName);
         }
     }
+
+
 }
