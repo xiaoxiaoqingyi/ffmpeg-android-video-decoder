@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private final static int REQUEST_CODE_FILE = 0x111;
 
     private EditText input_editText;
+    private FFmpegUtils ffmpegUtils;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +32,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.button_file_path_input).setOnClickListener(this);
         findViewById(R.id.start).setOnClickListener(this);
         input_editText = (EditText)findViewById(R.id.file_path_input);
+
+        ffmpegUtils = new FFmpegUtils();
     }
 
 
@@ -51,6 +54,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String outputDir = Environment.getExternalStorageDirectory() + "/" + folder_created.getText().toString();
 
         String filePath = input_editText.getText().toString();
+        ffmpegUtils.openVideo(filePath);
+
+        //把前1秒的删了
+        ffmpegUtils.setBeginning(1,30);
+
+        for(int i=1; i<= 70; i++){
+            String fileName = i + ".jpg";
+            String absFilePath = outputDir + "/" + fileName;
+            ffmpegUtils.saveAFrame(absFilePath, 10);
+        }
+        ffmpegUtils.closeVideo();
+
     }
 
     private void chooceFile(){

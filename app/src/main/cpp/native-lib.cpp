@@ -2,7 +2,7 @@
 #include <string>
 #include <stdio.h>
 #include <setjmp.h>
-
+extern "C"{
 #include "include/libavcodec/avcodec.h"
 #include "include/libavfilter/avfilter.h"
 #include "include/libavformat/avformat.h"
@@ -16,7 +16,7 @@
 #include "include/libjpeg-turbo/cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
 #include "include/libjpeg-turbo/jversion.h"		/* for version message */
 #include "include/libjpeg-turbo/android/config.h"
-
+}
 #define TAG "JNI_TAG"
 //为了方便调用，将输出宏定义
 #define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
@@ -83,7 +83,7 @@ typedef uint8_t BYTE;
  * Method:    OpenVideo
  * Signature: (Ljava/lang/String;)Z
  */
-JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_OpenVideo
+JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_openVideo
         (JNIEnv *env, jobject obj, jstring FilePath)
 {
     // Register all formats and codecs
@@ -198,7 +198,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
  * Method:    SetBeginning
  * Signature: (I)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_SetBeginning
+JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_setBeginning
         (JNIEnv *env, jobject obj, jint time_sec, jint fps)
 {
     i=0;
@@ -238,7 +238,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
  * Method:    SaveAFrame
  * Signature: (Ljava/lang/String;I)Z
  */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_SaveAFrame
+JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_saveAFrame
         (JNIEnv *env, jobject obj, jstring filePath, jint interval)
 {
     j=1;
@@ -286,7 +286,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
  * Method:    CloseVideo
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_CloseVideo
+JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_closeVideo
         (JNIEnv *env, jobject obj)
 {
     // Free the RGB image
@@ -306,18 +306,6 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
     avformat_close_input(&pFormatCtx);
 
     return true;
-}
-
-/*
- * Class:     com_example_user_photocollecting_service_CaptureFrameService
- * Method:    ffmpegTest
- * Signature: (Ljava/lang/String;I)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_ffmpegTest
-        (JNIEnv *env, jobject obj, jstring pFileName, jint pNumOfFrames)
-{
-    LOGE("%s", info);
-    return env->NewStringUTF(info);
 }
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath) {

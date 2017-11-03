@@ -11,7 +11,7 @@ public class FFmpegUtils {
      * @param absFileName
      * @return
      */
-    public native String  OpenVideo(String absFileName);
+    public native String  openVideo(String absFileName);
 
     /**
      *
@@ -19,7 +19,7 @@ public class FFmpegUtils {
      * @param fps  帧数的间隔
      * @return
      */
-    public native boolean SetBeginning(int time_sec, int fps);
+    public native boolean setBeginning(int time_sec, int fps);
 
     /**
      *
@@ -27,8 +27,8 @@ public class FFmpegUtils {
      * @param interval 1秒钟抽的帧数
      * @return
      */
-    public native boolean SaveAFrame(String filePath, int interval);
-    public native boolean CloseVideo();
+    public native boolean saveAFrame(String filePath, int interval);
+    public native boolean closeVideo();
 
     //载入动态库
     static {
