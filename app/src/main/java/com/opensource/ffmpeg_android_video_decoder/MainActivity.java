@@ -13,12 +13,15 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.io.File;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private final static int REQUEST_CODE_FILE = 0x111;
 
     private EditText input_editText;
     private FFmpegUtils ffmpegUtils;
+    private TextView txt;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +35,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.button_file_path_input).setOnClickListener(this);
         findViewById(R.id.start).setOnClickListener(this);
         input_editText = (EditText)findViewById(R.id.file_path_input);
-
+        txt = (TextView)findViewById(R.id.txt);
         ffmpegUtils = new FFmpegUtils();
     }
 
@@ -52,19 +55,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void startDecoder(){
         EditText folder_created = (EditText) findViewById(R.id.folder_created);
         String outputDir = Environment.getExternalStorageDirectory() + "/" + folder_created.getText().toString();
+        File saveDir = new File(outputDir);
+        if(!saveDir.exists()){
+            saveDir.mkdir();
+        }
 
         String filePath = input_editText.getText().toString();
         ffmpegUtils.openVideo(filePath);
 
         //把前1秒的删了
-        ffmpegUtils.setBeginning(1,30);
+        ffmpegUtils.setBeginning(0,30);
 
-        for(int i=1; i<= 70; i++){
+        for(int i=1; i<= 300; i++){
             String fileName = i + ".jpg";
             String absFilePath = outputDir + "/" + fileName;
-            ffmpegUtils.saveAFrame(absFilePath, 10);
+            ffmpegUtils.saveAFrame(absFilePath, 1);
+            txt.setText("已处理:"+i);
         }
         ffmpegUtils.closeVideo();
+        txt.setText("已处理:"+300+",已完成!");
 
     }
 

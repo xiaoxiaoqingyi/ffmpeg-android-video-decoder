@@ -1,80 +1,68 @@
+# Sets the minimum version of CMake required to build the native
+# library. You should either keep the default value or only pass a
+# value of 3.4.0 or lower.
+
 cmake_minimum_required(VERSION 3.4.1)
-
-add_library(
-             native-lib
-             SHARED
-             src/main/cpp/native-lib.cpp )
-
-find_library( # Sets the name of the path variable.
+find_library(
               log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
               log )
+add_library(
+        videoHandler
+        SHARED
+        src/main/cpp/native-lib.cpp)
+include_directories(libs/include)
+set(distribution_DIR ${CMAKE_SOURCE_DIR}/../../../../libs)
 
-include_directories(src/main/cpp/include)
-set(distribution_DIR ${CMAKE_SOURCE_DIR}/../../../../src/main/cpp)
-
-add_library(avcodec SHARED IMPORTED)
-set_target_properties( avcodec
-              PROPERTIES IMPORTED_LOCATION
-              ../../../../src/main/cpp/libavcodec-57.so)
-
-add_library(avdevice SHARED IMPORTED)
-set_target_properties( avdevice
-              PROPERTIES IMPORTED_LOCATION
-              ../../../../src/main/cpp/libavdevice-57.so)
-
-add_library(avfilter SHARED IMPORTED)
-set_target_properties( avfilter
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libavfilter-6.so)
-
-add_library(avformat SHARED IMPORTED)
-set_target_properties( avformat
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libavformat-57.so)
-
-add_library(avutil SHARED IMPORTED)
+add_library( avutil
+             SHARED
+             IMPORTED )
 set_target_properties( avutil
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libavutil-55.so)
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libavutil-55.so )
 
-add_library(postproc SHARED IMPORTED)
-set_target_properties( postproc
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libpostproc-54.so)
-
-add_library(swresample SHARED IMPORTED)
+add_library( swresample
+             SHARED
+             IMPORTED )
 set_target_properties( swresample
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libswresample-2.so)
-
-add_library(swscale SHARED IMPORTED)
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libswresample-2.so )
+add_library( avcodec
+             SHARED
+             IMPORTED )
+set_target_properties( avcodec
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libavcodec-57.so )
+add_library( avfilter
+             SHARED
+             IMPORTED)
+set_target_properties( avfilter
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libavfilter-6.so )
+add_library( swscale
+             SHARED
+             IMPORTED)
 set_target_properties( swscale
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libswscale-4.so)
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libswscale-4.so )
+add_library( avdevice
+             SHARED
+             IMPORTED)
+set_target_properties( avdevice
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libavdevice-57.so )
+add_library( avformat
+             SHARED
+             IMPORTED)
+set_target_properties( avformat
+                       PROPERTIES IMPORTED_LOCATION
+                       ../../../../libs/armeabi-v7a/libavformat-57.so )
 
-
-add_library(jpegbither SHARED IMPORTED)
-set_target_properties( jpegbither
-            PROPERTIES IMPORTED_LOCATION
-            ../../../../src/main/cpp/libjpegbither.so)
-
-
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-target_link_libraries( # Specifies the target library.
-                       native-lib
-                        avcodec
-                        avdevice
-                        avfilter
-                        avformat
-                        avutil
-                        postproc
-                        swresample
-                        swscale
-                        jpegbither
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
+add_library(jpegbither
+            SHARED
+            IMPORTED)
+set_target_properties(jpegbither
+              PROPERTIES IMPORTED_LOCATION
+              ../../../../libs/armeabi-v7a/libjpegbither.so )
+target_link_libraries(
+        videoHandler avutil avformat avdevice swscale avfilter avcodec swresample jpegbither
+        ${log-lib} )

@@ -3,25 +3,25 @@
 #include <stdio.h>
 #include <setjmp.h>
 extern "C"{
-#include "include/libavcodec/avcodec.h"
-#include "include/libavfilter/avfilter.h"
-#include "include/libavformat/avformat.h"
-#include "include/libswscale/swscale.h"
-#include "include/libavutil/error.h"
-#include "include/libavutil/pixfmt.h"
+#include "libavcodec/avcodec.h"
+#include "libavfilter/avfilter.h"
+#include "libavformat/avformat.h"
+#include "libswscale/swscale.h"
+#include "libavutil/error.h"
+#include "libavutil/pixfmt.h"
 #include <android/log.h>
 #include <android/bitmap.h>
 
-#include "include/libjpeg-turbo/jpeglib.h"
-#include "include/libjpeg-turbo/cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
-#include "include/libjpeg-turbo/jversion.h"		/* for version message */
-#include "include/libjpeg-turbo/android/config.h"
+#include "libjpeg-turbo/jpeglib.h"
+#include "libjpeg-turbo/cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
+#include "libjpeg-turbo/jversion.h"		/* for version message */
+#include "libjpeg-turbo/android/config.h"
 }
 #define TAG "JNI_TAG"
 //为了方便调用，将输出宏定义
-#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
-#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
+//#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+//#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+#define LOGD(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
 
 // compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
@@ -230,7 +230,8 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
         LOGD("free packet\n");
         av_free_packet(&packet);
     }
-    //LOGD("have saved frames, i is %d, k is %d\n", i, k);
+    LOGD("have saved frames, i is %d, k is %d\n", i, k);
+    return true;
 }
 
 /*
@@ -326,7 +327,7 @@ my_error_exit (j_common_ptr cinfo)
     my_error_ptr myerr = (my_error_ptr) cinfo->err;
     (*cinfo->err->output_message) (cinfo);
 //    error=myerr->pub.jpeg_message_table[myerr->pub.msg_code];
-    LOGE("jpeg_message_table[%d]:%s", myerr->pub.msg_code,myerr->pub.jpeg_message_table[myerr->pub.msg_code]);
+    LOGD("jpeg_message_table[%d]:%s", myerr->pub.msg_code,myerr->pub.jpeg_message_table[myerr->pub.msg_code]);
     // LOGE("addon_message_table:%s", myerr->pub.addon_message_table);
 //  LOGE("SIZEOF:%d",myerr->pub.msg_parm.i[0]);
 //  LOGE("sizeof:%d",myerr->pub.msg_parm.i[1]);
@@ -370,9 +371,9 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     jcs.image_width = e;
     jcs.image_height = e;
     if (optimize) {
-        LOGI("optimize==ture");
+        LOGD("optimize==ture");
     } else {
-        LOGI("optimize==false");
+        LOGD("optimize==false");
     }
 
     jcs.arith_code = false;
@@ -408,9 +409,9 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     }
 
     if (jcs.optimize_coding) {
-        LOGI("optimize==ture");
+        LOGD("optimize==ture");
     } else {
-        LOGI("optimize==false");
+        LOGD("optimize==false");
     }
     jpeg_finish_compress(&jcs);
     jpeg_destroy_compress(&jcs);

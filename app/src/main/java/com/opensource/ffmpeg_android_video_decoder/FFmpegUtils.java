@@ -6,6 +6,11 @@ package com.opensource.ffmpeg_android_video_decoder;
 
 public class FFmpegUtils {
 
+    //载入动态库
+    static {
+        System.loadLibrary("videoHandler");
+    }
+
     /**
      * 打开视频
      * @param absFileName
@@ -30,11 +35,6 @@ public class FFmpegUtils {
     public native boolean saveAFrame(String filePath, int interval);
     public native boolean closeVideo();
 
-    //载入动态库
-    static {
 
-        System.loadLibrary("native-lib");
-
-    }
 
 }
