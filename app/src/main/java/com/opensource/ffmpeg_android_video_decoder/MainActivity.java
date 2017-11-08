@@ -63,9 +63,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String filePath = input_editText.getText().toString();
         ffmpegUtils.openVideo(filePath);
 
-        //把前1秒的删了
-        ffmpegUtils.setBeginning(0,30);
-
         for(int i=1; i<= 300; i++){
             String fileName = i + ".jpg";
             String absFilePath = outputDir + "/" + fileName;

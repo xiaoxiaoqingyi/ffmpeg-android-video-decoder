@@ -19,15 +19,6 @@ public class FFmpegUtils {
     public native String  openVideo(String absFileName);
 
     /**
-     *
-     * @param time_sec 开始的时间
-     * @param fps  帧数的间隔
-     * @return
-     */
-    public native boolean setBeginning(int time_sec, int fps);
-
-    /**
-     *
      * @param filePath 文件保存地址
      * @param interval 1秒钟抽的帧数
      * @return

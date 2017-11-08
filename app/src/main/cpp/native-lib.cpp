@@ -1,27 +1,21 @@
 #include <jni.h>
 #include <string>
-#include <stdio.h>
 #include <setjmp.h>
+#include <android/log.h>
+
 extern "C"{
 #include "libavcodec/avcodec.h"
 #include "libavfilter/avfilter.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
-#include "libavutil/error.h"
-#include "libavutil/pixfmt.h"
-#include <android/log.h>
-#include <android/bitmap.h>
-
 #include "libjpeg-turbo/jpeglib.h"
-#include "libjpeg-turbo/cdjpeg.h"		/* Common decls for cjpeg/djpeg applications */
-#include "libjpeg-turbo/jversion.h"		/* for version message */
-#include "libjpeg-turbo/android/config.h"
 }
+
 #define TAG "JNI_TAG"
 //为了方便调用，将输出宏定义
 //#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 //#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
-#define LOGD(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
+#define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
 
 // compatibility with newer API
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,1)
@@ -31,7 +25,6 @@ extern "C"{
 
 #define true 1
 #define false 0
-
 
 
 extern "C"{
@@ -68,20 +61,8 @@ typedef uint8_t BYTE;
 
     void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath);
 
-//    JNIEXPORT jstring JNICALL
-//    Java_com_opensource_ffmpeg_1android_1video_1decoder_MainActivity_stringFromJNI(
-//            JNIEnv *env,
-//            jobject /* this */) {
-//        std::string hello = "Hello from C++";
-//        return env->NewStringUTF(hello.c_str());
-//    }
-
-
-
 /*
- * Class:     com_example_user_photocollecting_service_CaptureFrameService
  * Method:    OpenVideo
- * Signature: (Ljava/lang/String;)Z
  */
 JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_openVideo
         (JNIEnv *env, jobject obj, jstring FilePath)
@@ -194,50 +175,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
 }
 
 /*
- * Class:     com_example_user_photocollecting_service_CaptureFrameService
- * Method:    SetBeginning
- * Signature: (I)Z
- */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_setBeginning
-        (JNIEnv *env, jobject obj, jint time_sec, jint fps)
-{
-    i=0;
-    j=0;
-    k=0;
-    // seek to the time_sec;
-    while(av_read_frame(pFormatCtx, &packet)>=0) {
-        // Is this a packet from the video stream?
-        LOGD("read frame");
-        if (packet.stream_index == videoStream) {
-            // Decode video frame
-            avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-            //LOGD("decode_video2");
-
-            // Did we get a video frame?
-            if (frameFinished) {
-                if (i <= time_sec * fps) {
-                    ++i;
-                }
-                else {
-                    LOGD("free packet\n");
-                    av_free_packet(&packet);
-                    break;
-                }
-            }
-        }
-
-        // Free the packet that was allocated by av_read_frame
-        LOGD("free packet\n");
-        av_free_packet(&packet);
-    }
-    LOGD("have saved frames, i is %d, k is %d\n", i, k);
-    return true;
-}
-
-/*
- * Class:     com_example_user_photocollecting_service_CaptureFrameService
  * Method:    SaveAFrame
- * Signature: (Ljava/lang/String;I)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_saveAFrame
         (JNIEnv *env, jobject obj, jstring filePath, jint interval)
@@ -248,11 +186,11 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
     absFilePath = (char *)env->GetStringUTFChars(filePath, NULL);
     while(av_read_frame(pFormatCtx, &packet)>=0) {
         // Is this a packet from the video stream?
-        //LOGD("read frame");
+        //LOGI("read frame");
         if(packet.stream_index==videoStream) {
             // Decode video frame
             avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-            //LOGD("decode_video2");
+            //LOGI("decode_video2");
 
             // Did we get a video frame?
             if(frameFinished) {
@@ -264,9 +202,9 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
                               pFrame->linesize, 0, pCodecCtx->height,
                               pFrameRGB->data, pFrameRGB->linesize);
                     SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, k+1, absFilePath);
-                    LOGD("have saved frames, j is %d, k is %d\n", j, k);
+                    LOGI("have saved frames, j is %d, k is %d\n", j, k);
 
-                    //LOGD("frameFinished, free packet\n");
+                    //LOGI("frameFinished, free packet\n");
                     av_free_packet(&packet);
                     break;
                 }
@@ -275,7 +213,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
         }
 
         // Free the packet that was allocated by av_read_frame
-        //LOGD("free packet\n");
+        //LOGI("free packet\n");
         av_free_packet(&packet);
     }
 
@@ -283,9 +221,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
 }
 
 /*
- * Class:     com_example_user_photocollecting_service_CaptureFrameService
  * Method:    CloseVideo
- * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_closeVideo
         (JNIEnv *env, jobject obj)
@@ -310,8 +246,8 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
 }
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath) {
-    LOGD("absFilePath:%s", absFilePath);
-    //LOGD("save frame %d", iFrame);
+    LOGI("absFilePath:%s", absFilePath);
+    //LOGI("save frame %d", iFrame);
     //FILE *pFile;
     //char szFilename[32];
 
@@ -327,7 +263,7 @@ my_error_exit (j_common_ptr cinfo)
     my_error_ptr myerr = (my_error_ptr) cinfo->err;
     (*cinfo->err->output_message) (cinfo);
 //    error=myerr->pub.jpeg_message_table[myerr->pub.msg_code];
-    LOGD("jpeg_message_table[%d]:%s", myerr->pub.msg_code,myerr->pub.jpeg_message_table[myerr->pub.msg_code]);
+    LOGI("jpeg_message_table[%d]:%s", myerr->pub.msg_code,myerr->pub.jpeg_message_table[myerr->pub.msg_code]);
     // LOGE("addon_message_table:%s", myerr->pub.addon_message_table);
 //  LOGE("SIZEOF:%d",myerr->pub.msg_parm.i[0]);
 //  LOGE("sizeof:%d",myerr->pub.msg_parm.i[1]);
@@ -336,8 +272,6 @@ my_error_exit (j_common_ptr cinfo)
 
 int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename, jboolean optimize)
 {
-
-
     int l,t,e;
     if(w > h){
         l = (w-h)/2;
@@ -371,9 +305,9 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     jcs.image_width = e;
     jcs.image_height = e;
     if (optimize) {
-        LOGD("optimize==ture");
+        LOGI("optimize==ture");
     } else {
-        LOGD("optimize==false");
+        LOGI("optimize==false");
     }
 
     jcs.arith_code = false;
@@ -392,7 +326,7 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     int row_stride;
 
     if (w>h) {
-        LOGD("w>h\n");
+        LOGI("w>h\n");
         row_stride = w * nComponent;
         while (jcs.next_scanline<jcs.image_height) {
             row_pointer[0] = &data[jcs.next_scanline * row_stride + l * nComponent];
@@ -400,7 +334,7 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
         }
     }
     else {
-        LOGD("w<h\n");
+        LOGI("w<h\n");
         row_stride = w * nComponent;
         while (jcs.next_scanline<jcs.image_height) {
             row_pointer[0] = &data[(t + jcs.next_scanline) * row_stride];
@@ -409,9 +343,9 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     }
 
     if (jcs.optimize_coding) {
-        LOGD("optimize==ture");
+        LOGI("optimize==ture");
     } else {
-        LOGD("optimize==false");
+        LOGI("optimize==false");
     }
     jpeg_finish_compress(&jcs);
     jpeg_destroy_compress(&jcs);
