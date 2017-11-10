@@ -47,7 +47,6 @@ typedef uint8_t BYTE;
     struct SwsContext *sws_ctx = NULL;
     int               err;
 
-    char *error;
     struct my_error_mgr {
         struct jpeg_error_mgr pub;
         jmp_buf setjmp_buffer;
@@ -94,10 +93,14 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     // Find the first video stream
     videoStream=-1;
     for(i=0; i<pFormatCtx->nb_streams; i++)
-        if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
+    {
+        if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO)
+        {
             videoStream=i;
             break;
         }
+    }
+
     if(videoStream==-1)
     {
         sprintf(info, "Didn't find a video stream\n");
@@ -181,12 +184,11 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
         (JNIEnv *env, jobject obj, jstring filePath, jint interval)
 {
     j=1;
-    // Read frames and save first five frames to disk;
+
     char *absFilePath;
     absFilePath = (char *)env->GetStringUTFChars(filePath, NULL);
     while(av_read_frame(pFormatCtx, &packet)>=0) {
         // Is this a packet from the video stream?
-        //LOGI("read frame");
         if(packet.stream_index==videoStream) {
             // Decode video frame
             avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
