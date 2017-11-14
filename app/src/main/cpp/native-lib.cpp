@@ -274,17 +274,17 @@ my_error_exit (j_common_ptr cinfo)
 
 int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename, jboolean optimize)
 {
-    int l,t,e;
-    if(w > h){
-        l = (w-h)/2;
-        t = 0;
-        e = h;
-    }
-    else{
-        l = 0;
-        t = (h-w)/2;
-        e = w;
-    }
+//    int l,t,e;
+//    if(w > h){
+//        l = (w-h)/2;
+//        t = 0;
+//        e = h;
+//    }
+//    else{
+//        l = 0;
+//        t = (h-w)/2;
+//        e = w;
+//    }
 
     int nComponent = 3;
 
@@ -304,8 +304,8 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     }
     jpeg_stdio_dest(&jcs, f);
 
-    jcs.image_width = e;
-    jcs.image_height = e;
+    jcs.image_width = w;
+    jcs.image_height = h;
     if (optimize) {
         LOGI("optimize==ture");
     } else {
@@ -314,10 +314,7 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
 
     jcs.arith_code = false;
     jcs.input_components = nComponent;
-    if (nComponent == 1)
-        jcs.in_color_space = JCS_GRAYSCALE;
-    else
-        jcs.in_color_space = JCS_RGB;
+    jcs.in_color_space = JCS_RGB;
 
     jpeg_set_defaults(&jcs);
     jcs.optimize_coding = optimize;
@@ -326,23 +323,28 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     jpeg_start_compress(&jcs, TRUE);
     JSAMPROW row_pointer[1];
     int row_stride;
+    row_stride = w * nComponent;
+    while (jcs.next_scanline<jcs.image_height) {
+        row_pointer[0] = &data[((h-w)/2 + jcs.next_scanline) * row_stride];
+        jpeg_write_scanlines(&jcs, row_pointer, 1);
+    }
 
-    if (w>h) {
-        LOGI("w>h\n");
-        row_stride = w * nComponent;
-        while (jcs.next_scanline<jcs.image_height) {
-            row_pointer[0] = &data[jcs.next_scanline * row_stride + l * nComponent];
-            jpeg_write_scanlines(&jcs, row_pointer, 1);
-        }
-    }
-    else {
-        LOGI("w<h\n");
-        row_stride = w * nComponent;
-        while (jcs.next_scanline<jcs.image_height) {
-            row_pointer[0] = &data[(t + jcs.next_scanline) * row_stride];
-            jpeg_write_scanlines(&jcs, row_pointer, 1);
-        }
-    }
+//    if (w>h) {
+//        LOGI("w>h\n");
+//        row_stride = w * nComponent;
+//        while (jcs.next_scanline<jcs.image_height) {
+//            row_pointer[0] = &data[jcs.next_scanline * row_stride + l * nComponent];
+//            jpeg_write_scanlines(&jcs, row_pointer, 1);
+//        }
+//    }
+//    else {
+//        LOGI("w<h\n");
+//        row_stride = w * nComponent;
+//        while (jcs.next_scanline<jcs.image_height) {
+//            row_pointer[0] = &data[(t + jcs.next_scanline) * row_stride];
+//            jpeg_write_scanlines(&jcs, row_pointer, 1);
+//        }
+//    }
 
     if (jcs.optimize_coding) {
         LOGI("optimize==ture");
