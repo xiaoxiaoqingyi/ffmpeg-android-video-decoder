@@ -248,14 +248,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
 }
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath) {
-    LOGI("absFilePath:%s", absFilePath);
-    //LOGI("save frame %d", iFrame);
-    //FILE *pFile;
-    //char szFilename[32];
 
-    // Open file
-    //sprintf(szFilename, "/sdcard/Download/frame%d.jpg", iFrame);
-    //generateJPEG(pFrame->data[0], width, height, 80, szFilename, true);
     generateJPEG(pFrame->data[0], width, height, 80, absFilePath, true);
 }
 
@@ -274,18 +267,6 @@ my_error_exit (j_common_ptr cinfo)
 
 int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename, jboolean optimize)
 {
-//    int l,t,e;
-//    if(w > h){
-//        l = (w-h)/2;
-//        t = 0;
-//        e = h;
-//    }
-//    else{
-//        l = 0;
-//        t = (h-w)/2;
-//        e = w;
-//    }
-
     int nComponent = 3;
 
     struct jpeg_compress_struct jcs;
@@ -306,11 +287,6 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
 
     jcs.image_width = w;
     jcs.image_height = h;
-    if (optimize) {
-        LOGI("optimize==ture");
-    } else {
-        LOGI("optimize==false");
-    }
 
     jcs.arith_code = false;
     jcs.input_components = nComponent;
@@ -324,33 +300,11 @@ int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename,
     JSAMPROW row_pointer[1];
     int row_stride;
     row_stride = w * nComponent;
-    while (jcs.next_scanline<jcs.image_height) {
-        row_pointer[0] = &data[((h-w)/2 + jcs.next_scanline) * row_stride];
+    while (jcs.next_scanline < jcs.image_height) {
+        row_pointer[0] = &data[jcs.next_scanline * row_stride];
         jpeg_write_scanlines(&jcs, row_pointer, 1);
     }
 
-//    if (w>h) {
-//        LOGI("w>h\n");
-//        row_stride = w * nComponent;
-//        while (jcs.next_scanline<jcs.image_height) {
-//            row_pointer[0] = &data[jcs.next_scanline * row_stride + l * nComponent];
-//            jpeg_write_scanlines(&jcs, row_pointer, 1);
-//        }
-//    }
-//    else {
-//        LOGI("w<h\n");
-//        row_stride = w * nComponent;
-//        while (jcs.next_scanline<jcs.image_height) {
-//            row_pointer[0] = &data[(t + jcs.next_scanline) * row_stride];
-//            jpeg_write_scanlines(&jcs, row_pointer, 1);
-//        }
-//    }
-
-    if (jcs.optimize_coding) {
-        LOGI("optimize==ture");
-    } else {
-        LOGI("optimize==false");
-    }
     jpeg_finish_compress(&jcs);
     jpeg_destroy_compress(&jcs);
     fclose(f);
