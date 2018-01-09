@@ -20,7 +20,7 @@ public class FFmpegUtils {
 
     /**
      * @param filePath 文件保存地址
-     * @param interval 1秒钟抽的帧数
+     * @param interval  间隔， 抽帧的时候间隔，0的时候，把所有的帧抽出来
      * @return
      */
     public native boolean saveAFrame(String filePath, int interval);

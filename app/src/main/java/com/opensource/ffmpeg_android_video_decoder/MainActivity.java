@@ -63,14 +63,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String filePath = input_editText.getText().toString();
         ffmpegUtils.openVideo(filePath);
 
-        for(int i=1; i<= 300; i++){
-            String fileName = i + ".jpg";
-            String absFilePath = outputDir + "/" + fileName;
-            ffmpegUtils.saveAFrame(absFilePath, 1);
-            txt.setText("已处理:"+i);
-        }
+        ffmpegUtils.saveAFrame(outputDir, 0);
         ffmpegUtils.closeVideo();
-        txt.setText("已处理:"+300+",已完成!");
+        txt.setText("已处理完成");
 
     }
 

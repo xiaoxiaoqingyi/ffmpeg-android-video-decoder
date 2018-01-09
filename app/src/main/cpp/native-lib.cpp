@@ -2,13 +2,17 @@
 #include <string>
 #include <setjmp.h>
 #include <android/log.h>
+#include <stdio.h>
+using namespace std;
 
 extern "C"{
+#include <stdlib.h>
 #include "libavcodec/avcodec.h"
 #include "libavfilter/avfilter.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 #include "libjpeg-turbo/jpeglib.h"
+
 }
 
 #define TAG "JNI_TAG"
@@ -183,7 +187,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
 JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_saveAFrame
         (JNIEnv *env, jobject obj, jstring filePath, jint interval)
 {
-    j=1;
+    j=0;
 
     char *absFilePath;
     absFilePath = (char *)env->GetStringUTFChars(filePath, NULL);
@@ -196,21 +200,22 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
 
             // Did we get a video frame?
             if(frameFinished) {
-
-                if( j%interval==0 )
-                {
-                    k = j/interval;
-                    sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
-                              pFrame->linesize, 0, pCodecCtx->height,
-                              pFrameRGB->data, pFrameRGB->linesize);
-                    SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, k+1, absFilePath);
-                    LOGI("have saved frames, j is %d, k is %d\n", j, k);
-
-                    //LOGI("frameFinished, free packet\n");
-                    av_free_packet(&packet);
-                    break;
-                }
                 ++j;
+                sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
+                          pFrame->linesize, 0, pCodecCtx->height,
+                          pFrameRGB->data, pFrameRGB->linesize);
+                if(interval==0)
+                {
+                    SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, j, absFilePath);
+                } else if(interval > 0 && j%(interval+1) == 0){
+                    k = j/(interval+1);
+                    SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, k+1, absFilePath);
+                } else{
+                    av_free_packet(&packet);
+                    continue;
+                }
+                av_free_packet(&packet);
+
             }
         }
 
@@ -249,7 +254,11 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath) {
 
-    generateJPEG(pFrame->data[0], width, height, 80, absFilePath, true);
+
+    char path[200] ;
+    sprintf(path, "%s/%d.jpg",absFilePath, iFrame);
+
+    generateJPEG(pFrame->data[0], width, height, 100, path, true);
 }
 
 METHODDEF(void)
