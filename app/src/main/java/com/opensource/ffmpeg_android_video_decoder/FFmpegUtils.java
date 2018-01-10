@@ -11,20 +11,15 @@ public class FFmpegUtils {
         System.loadLibrary("videoHandler");
     }
 
-    /**
-     * 打开视频
-     * @param absFileName
-     * @return
-     */
-    public native String  openVideo(String absFileName);
 
     /**
-     * @param filePath 文件保存地址
-     * @param interval  间隔， 抽帧的时候间隔，0的时候，把所有的帧抽出来
+     *
+     * @param sourcePath  MP4等视频文件路径
+     * @param savePath    图片的保存路径
+     * @param interval    间隔， 抽帧的时候间隔，当 interval=0 时，把所有的帧抽出来
      * @return
      */
-    public native boolean saveAFrame(String filePath, int interval);
-    public native boolean closeVideo();
+    public native boolean captureFrameToJpeg(String sourcePath, String savePath, int interval);
 
 
 

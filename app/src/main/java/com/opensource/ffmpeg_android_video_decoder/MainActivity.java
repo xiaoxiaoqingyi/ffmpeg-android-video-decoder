@@ -61,10 +61,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         String filePath = input_editText.getText().toString();
-        ffmpegUtils.openVideo(filePath);
-
-        ffmpegUtils.saveAFrame(outputDir, 0);
-        ffmpegUtils.closeVideo();
+        //ffmpeg 抽帧 且保存jpg 图片
+        ffmpegUtils.captureFrameToJpeg(filePath, outputDir, 2);
         txt.setText("已处理完成");
 
     }

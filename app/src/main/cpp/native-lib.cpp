@@ -17,8 +17,8 @@ extern "C"{
 
 #define TAG "JNI_TAG"
 //为了方便调用，将输出宏定义
-//#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-//#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+#define LOGE(...)  __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
 #define LOGI(...)  __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__);
 
 // compatibility with newer API
@@ -33,11 +33,25 @@ extern "C"{
 
 extern "C"{
 
-typedef uint8_t BYTE;
+    typedef uint8_t  BYTE;
+    struct SwsContext *sws_ctx = NULL;
+    struct my_error_mgr {
+        struct jpeg_error_mgr pub;
+        jmp_buf setjmp_buffer;
+    };
+    typedef struct my_error_mgr * my_error_ptr;
 
+    int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename, jboolean optimize);
+
+    void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath);
+
+
+JNIEXPORT bool JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_captureFrameToJpeg
+        (JNIEnv *env, jobject obj, jstring sourcePath, jstring savePath, jint interval)
+{
     char info[10000] = { 0 };
     AVFormatContext   *pFormatCtx = NULL;
-    static int        i, j, k;
+    static int        i =0, j =0, k =0;
     int               videoStream;
     AVCodecContext    *pCodecCtxOrig = NULL;
     AVCodecContext    *pCodecCtx = NULL;
@@ -48,46 +62,27 @@ typedef uint8_t BYTE;
     int               frameFinished;
     int               numBytes;
     uint8_t           *buffer = NULL;
-    struct SwsContext *sws_ctx = NULL;
     int               err;
 
-    struct my_error_mgr {
-        struct jpeg_error_mgr pub;
-        jmp_buf setjmp_buffer;
-    };
 
-    typedef struct my_error_mgr * my_error_ptr;
-
-    //int WriteJPEG (AVCodecContext *pCodecCtx, AVFrame *pFrame, int FrameNo);
-    int generateJPEG(BYTE* data, int w, int h, int quality, const char* outfilename, jboolean optimize);
-
-
-    void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath);
-
-/*
- * Method:    OpenVideo
- */
-JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_openVideo
-        (JNIEnv *env, jobject obj, jstring FilePath)
-{
     // Register all formats and codecs
     av_register_all();
 
     // Open video file
     char *videoFileName;
-    videoFileName = (char *)env->GetStringUTFChars(FilePath, NULL);
+    videoFileName = (char *)env->GetStringUTFChars(sourcePath, NULL);
     err = avformat_open_input(&pFormatCtx, videoFileName, NULL, NULL);
     if(err != 0) {
         //av_strerror(err, info, 10000);
         sprintf(info, "Couldn't open file,Filename: %s,Error: %d\n", videoFileName, err);
-        return env->NewStringUTF(info);
+        return FALSE;
     }
 
     // Retrieve stream information
     if(avformat_find_stream_info(pFormatCtx, NULL)<0)
     {
         sprintf(info, "Couldn't find stream information\n");
-        return env->NewStringUTF(info);
+        return FALSE;
     }
 
     // Dump information about file onto standard error
@@ -108,7 +103,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     if(videoStream==-1)
     {
         sprintf(info, "Didn't find a video stream\n");
-        return env->NewStringUTF(info);
+        return FALSE;
     }
 
     // Get a pointer to the codec context for the video stream
@@ -117,7 +112,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     pCodec=avcodec_find_decoder(pCodecCtxOrig->codec_id);
     if(pCodec==NULL) {
         sprintf(info, "Unsupported codec!\n");
-        return env->NewStringUTF(info);
+        return FALSE;
         //fprintf(stderr, "Unsupported codec!\n");
         //return -1; // Codec not found
     }
@@ -125,7 +120,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     pCodecCtx = avcodec_alloc_context3(pCodec);
     if(avcodec_copy_context(pCodecCtx, pCodecCtxOrig) != 0) {
         sprintf(info, "Couldn't copy codec context!\n");
-        return env->NewStringUTF(info);
+        return FALSE;
         //fprintf(stderr, "Couldn't copy codec context");
         //return -1; // Error copying codec context
     }
@@ -134,7 +129,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     if(avcodec_open2(pCodecCtx, pCodec, NULL)<0)
     {
         sprintf(info, "Could not open codec!\n");
-        return env->NewStringUTF(info);
+        return FALSE;
     }
 
     // Allocate video frame
@@ -145,7 +140,7 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
     if(pFrameRGB==NULL)
     {
         sprintf(info, "pFrameRGB==NULL!\n");
-        return env->NewStringUTF(info);
+        return FALSE;
     }
 
     // Determine required buffer size and allocate buffer
@@ -172,35 +167,17 @@ JNIEXPORT jstring JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FF
                              NULL
     );
 
-    i=0;
-    j=0;
-    k=0;
 
-    char info[40000] = { 0 };
-    return env->NewStringUTF(info);
-
-}
-
-/*
- * Method:    SaveAFrame
- */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_saveAFrame
-        (JNIEnv *env, jobject obj, jstring filePath, jint interval)
-{
-    j=0;
-
+    // start decode
     char *absFilePath;
-    absFilePath = (char *)env->GetStringUTFChars(filePath, NULL);
+    absFilePath = (char *)env->GetStringUTFChars(savePath, NULL);
     while(av_read_frame(pFormatCtx, &packet)>=0) {
         // Is this a packet from the video stream?
         if(packet.stream_index==videoStream) {
             // Decode video frame
             avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
-            //LOGI("decode_video2");
-
             // Did we get a video frame?
             if(frameFinished) {
-                ++j;
                 sws_scale(sws_ctx, (uint8_t const * const *)pFrame->data,
                           pFrame->linesize, 0, pCodecCtx->height,
                           pFrameRGB->data, pFrameRGB->linesize);
@@ -212,10 +189,11 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
                     SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, k+1, absFilePath);
                 } else{
                     av_free_packet(&packet);
+                    ++j;
                     continue;
                 }
                 av_free_packet(&packet);
-
+                ++j;
             }
         }
 
@@ -224,15 +202,7 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
         av_free_packet(&packet);
     }
 
-    return true;
-}
 
-/*
- * Method:    CloseVideo
- */
-JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_FFmpegUtils_closeVideo
-        (JNIEnv *env, jobject obj)
-{
     // Free the RGB image
     av_free(buffer);
     //av_frame_free(&pFrameRGB);
@@ -249,13 +219,15 @@ JNIEXPORT jboolean JNICALL Java_com_opensource_ffmpeg_1android_1video_1decoder_F
     // Close the video file
     avformat_close_input(&pFormatCtx);
 
-    return true;
+    return TRUE;
+
 }
+
+
 
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame, char *absFilePath) {
 
-
-    char path[200] ;
+    char path[500] ;
     sprintf(path, "%s/%d.jpg",absFilePath, iFrame);
 
     generateJPEG(pFrame->data[0], width, height, 100, path, true);
